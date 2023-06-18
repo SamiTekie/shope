@@ -27,7 +27,7 @@ public class Main {
                 // Do something with the data (e.g., print it)
                 System.out.println("Column 1: " + column1);
                 System.out.println("Column 2: " + column2);
-                System.out.println();
+                  System.out.println();
             }
            // Insert operation
            Statement insertStatement = connection.createStatement();
