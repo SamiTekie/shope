@@ -1,23 +1,17 @@
 import lombok.*;
 
-@Data
-@Builder
+//@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Product {
     private int id;
-    private String product_name;
-    private double product_price;
-    private String product_description;
-    private int product_category_id;
+    private String productName;
+    private double productPrice;
+    private String productDescription;
+    private int productCategoryId;
 
+    private Product_Category p;
 
-    public void setName(String name) {
-    }
-
-    public void setPrice(double price) {
-    }
-
-    public void setCategory(Product_Category category) {
-    }
 }
