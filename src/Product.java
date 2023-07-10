@@ -1,17 +1,17 @@
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-//@Data
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
 public class Product {
     private int id;
     private String productName;
     private double productPrice;
     private String productDescription;
     private int productCategoryId;
-
-    private Product_Category p;
-
+    private String productCategoryName;
 }

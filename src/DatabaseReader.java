@@ -11,41 +11,31 @@ public class DatabaseReader {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            // Declare two lists: products and categories
+            // Read products and categories from the database
             List<Product> products = readProductsFromDatabase();
             List<Product_Category> categories = readCategoriesFromDatabase();
 
-            // Loop through the products list and print the product name and price.
-            System.out.println("---------------data from Product table---------------");
+            // Print products from the Product table
+            System.out.println("--------------- Data from Product table ---------------");
             for (Product product : products) {
                 System.out.println(product.getId() + "-" + product.getProductName() + "-" +
-                        product.getProductPrice() + "-" + product.getProductDescription() +
-                        "-" + product.getP());
+                        product.getProductPrice() + "-" + product.getProductDescription());
             }
-            System.out.println("-----------------------------------------------------------------------------");
+            System.out.println("-------------------------------------------------------");
 
-            System.out.println("---------------data from Product_Category table---------------");
-            // Loop through the categories list and print the category names.
+            // Print categories from the Product_Category table
+            System.out.println("------------ Data from Product_Category table ------------");
             for (Product_Category category : categories) {
-                System.out.println(category.getProduct_category_id() + "-" +
-                        category.getProduct_category_name());
+                System.out.println(category.getProductCategoryId() + "-" +
+                        category.getProductCategoryName());
             }
 
             // Example usage of insertion, updating, and deleting methods
-            Product newProduct = new Product();
-            newProduct.setProductName("headwear");
-            newProduct.setProductPrice(9.99);
-            newProduct.setProductDescription("clothing that are worn on the head.");
-            newProduct.setP(getCategoryById(1));
+            insertProductIntoDatabase("headwear", 9.99, "clothing that is worn on the head.", 1);
 
-            insertProductIntoDatabase(newProduct);
+            updateProductPriceInDatabase(products.get(5).getId(), 9.99);
 
-            Product productToUpdate = products.get(5);
-            productToUpdate.setProductPrice(9.99);
-            updateProductInDatabase(productToUpdate);
-
-            Product productToDelete = products.get(products.size() - 1);
-            deleteProductFromDatabase(productToDelete);
+            deleteProductFromDatabase(products.get(products.size() - 1).getId());
 
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -56,7 +46,9 @@ public class DatabaseReader {
         List<Product> products = new ArrayList<>();
 
         try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)) {
-            String sql = "SELECT * FROM product";
+            String sql = "SELECT p.product_id, p.product_name, p.product_price, p.product_description, c.product_category_name " +
+                    "FROM product p " +
+                    "INNER JOIN product_category c ON p.product_category_id = c.product_category_id";
             PreparedStatement statement = connection.prepareStatement(sql);
             ResultSet resultSet = statement.executeQuery();
 
@@ -65,16 +57,14 @@ public class DatabaseReader {
                 String name = resultSet.getString("product_name");
                 double price = resultSet.getDouble("product_price");
                 String description = resultSet.getString("product_description");
-                int categoryId = resultSet.getInt("product_category_id");
-
-                Product_Category category = getCategoryById(categoryId);
+                String categoryName = resultSet.getString("product_category_name");
 
                 Product product = new Product();
                 product.setId(productId);
                 product.setProductName(name);
                 product.setProductPrice(price);
                 product.setProductDescription(description);
-                product.setP(category);
+                product.setProductCategoryName(categoryName);
 
                 products.add(product);
             }
@@ -85,6 +75,7 @@ public class DatabaseReader {
 
         return products;
     }
+
 
     private static List<Product_Category> readCategoriesFromDatabase() {
         List<Product_Category> categories = new ArrayList<>();
@@ -108,39 +99,14 @@ public class DatabaseReader {
         return categories;
     }
 
-    private static Product_Category getCategoryById(int categoryId) {
-        Product_Category category = null;
-
+    private static void insertProductIntoDatabase(String productName, double productPrice, String productDescription, int categoryId) {
         try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)) {
-            String query = "SELECT * FROM product_category WHERE product_category_id = ?";
-            PreparedStatement statement = connection.prepareStatement(query);
-            statement.setInt(1, categoryId);
-
-            ResultSet resultSet = statement.executeQuery();
-
-            if (resultSet.next()) {
-                int id = resultSet.getInt("product_category_id");
-                String name = resultSet.getString("product_category_name");
-
-                category = new Product_Category(id, name);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return category;
-    }
-
-    private static void insertProductIntoDatabase(Product product) {
-        try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)) {
-            String sql = "INSERT INTO product (product_name, product_price," +
-                    " product_description, product_category_id)" +
-                    " VALUES (?, ?, ?, ?)";
+            String sql = "INSERT INTO product (product_name, product_price, product_description, product_category_id) VALUES (?, ?, ?, ?)";
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setString(1, product.getProductName());
-            statement.setDouble(2, product.getProductPrice());
-            statement.setString(3, product.getProductDescription());
-            statement.setInt(4, product.getP().getProduct_category_id());
+            statement.setString(1, productName);
+            statement.setDouble(2, productPrice);
+            statement.setString(3, productDescription);
+            statement.setInt(4, categoryId);
 
             int rowsAffected = statement.executeUpdate();
             if (rowsAffected > 0) {
@@ -153,13 +119,12 @@ public class DatabaseReader {
         }
     }
 
-
-    private static void updateProductInDatabase(Product product) {
+    private static void updateProductPriceInDatabase(int productId, double newPrice) {
         try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)) {
             String sql = "UPDATE product SET product_price = ? WHERE product_id = ?";
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setDouble(1, product.getProductPrice());
-            statement.setInt(2, product.getId());
+            statement.setDouble(1, newPrice);
+            statement.setInt(2, productId);
 
             int rowsAffected = statement.executeUpdate();
             if (rowsAffected > 0) {
@@ -172,11 +137,11 @@ public class DatabaseReader {
         }
     }
 
-    private static void deleteProductFromDatabase(Product product) {
+    private static void deleteProductFromDatabase(int productId) {
         try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)) {
             String sql = "DELETE FROM product WHERE product_id = ?";
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, product.getId());
+            statement.setInt(1, productId);
 
             int rowsAffected = statement.executeUpdate();
             if (rowsAffected > 0) {

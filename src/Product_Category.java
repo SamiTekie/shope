@@ -1,10 +1,13 @@
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Setter
 public class Product_Category {
-    private int product_category_id;
-    private String product_category_name;
+    private int productCategoryId;
+    private String productCategoryName;
 }
